@@ -4,7 +4,7 @@ import CourseTile from './CourseTile';
 
 const mockCourses = [
   {
-    id: 1,
+    id: '1',
     code: 'CSC 412 512',
     title: 'Advanced Computer Graphics',
     term: 'Spring 2025',
@@ -12,7 +12,7 @@ const mockCourses = [
     color: '#0066cc'
   },
   {
-    id: 2,
+    id: '2',
     code: 'CSC 503',
     title: 'Software Engineering & Design',
     term: 'Spring 2025',
@@ -20,7 +20,7 @@ const mockCourses = [
     color: '#ff6b35'
   },
   {
-    id: 3,
+    id: '3',
     code: 'EDCI 136',
     title: 'Educational Technology',
     term: 'Spring 2025',
@@ -28,7 +28,7 @@ const mockCourses = [
     color: '#4ecdc4'
   },
   {
-    id: 4,
+    id: '4',
     code: 'SENG 468',
     title: 'Software Architecture',
     term: 'Spring 2024',
@@ -36,7 +36,7 @@ const mockCourses = [
     color: '#45b7d1'
   },
   {
-    id: 5,
+    id: '5',
     code: 'CSC + ENGR',
     title: 'Co-op Work Term',
     term: 'Fall 2024',
@@ -44,7 +44,7 @@ const mockCourses = [
     color: '#96ceb4'
   },
   {
-    id: 6,
+    id: '6',
     code: 'TS 300',
     title: 'Technology & Society',
     term: 'Spring 2024',
@@ -59,6 +59,7 @@ const TileGrid = () => {
       {mockCourses.map((course) => (
         <CourseTile
           key={course.id}
+          id={course.id}
           code={course.code}
           title={course.title}
           term={course.term}
