@@ -1,11 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ContentNavigator from '@/features/home/ContentNavigator';
 import AnnouncementFeed from '@/features/home/AnnouncementFeed';
+import AssignmentList from '@/features/course/AssignmentList';
+import DiscussionForum from '@/features/course/DiscussionForum';
+import CourseResources from '@/features/course/CourseResources';
+import CourseSyllabus from '@/features/course/CourseSyllabus';
 
 const mockCourses = [
   {
@@ -55,9 +60,37 @@ const CourseHome = () => {
             <ContentNavigator />
           </div>
 
-          {/* Right Column - Announcements */}
+          {/* Main Content Area with Tabs */}
           <div className="lg:col-span-3">
-            <AnnouncementFeed />
+            <Tabs defaultValue="announcements" className="w-full">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="announcements">Announcements</TabsTrigger>
+                <TabsTrigger value="assignments">Assignments</TabsTrigger>
+                <TabsTrigger value="discussions">Discussions</TabsTrigger>
+                <TabsTrigger value="resources">Resources</TabsTrigger>
+                <TabsTrigger value="syllabus">Syllabus</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="announcements" className="mt-6">
+                <AnnouncementFeed />
+              </TabsContent>
+              
+              <TabsContent value="assignments" className="mt-6">
+                <AssignmentList />
+              </TabsContent>
+              
+              <TabsContent value="discussions" className="mt-6">
+                <DiscussionForum />
+              </TabsContent>
+              
+              <TabsContent value="resources" className="mt-6">
+                <CourseResources />
+              </TabsContent>
+              
+              <TabsContent value="syllabus" className="mt-6">
+                <CourseSyllabus />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
