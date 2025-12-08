@@ -61,7 +61,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom colors for minimalistic black/white/blue design
+				navy: 'hsl(var(--navy))',
+				'blue-accent': 'hsl(var(--blue-accent))',
+				'blue-light': 'hsl(var(--blue-light))',
+				'microsoft-blue': 'hsl(var(--microsoft-blue))',
+				'gray-dark': 'hsl(var(--gray-dark))',
+				'gray-medium': 'hsl(var(--gray-medium))',
+				'gray-light': 'hsl(var(--gray-light))',
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

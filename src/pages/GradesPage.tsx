@@ -1,123 +1,170 @@
-
 import React, { useState } from 'react';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { getStudentCourses, getStudentGrades, mockEnrollments } from '@/lib/mock-data';
+import { Student } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Download } from 'lucide-react';
+import DataTable, { Column } from '@/components/shared/DataTable';
 
-interface GradeItem {
-  item: string;
-  category: string;
-  weight: string;
-  score: string;
+interface CourseGrade {
+  courseCode: string;
+  courseTitle: string;
+  credits: number;
+  grade: number | undefined;
+  letterGrade: string | undefined;
+  term: string;
 }
 
-const mockGrades: GradeItem[] = [
-  { item: 'Assignment 1', category: 'Assignments', weight: '20%', score: '85%' },
-  { item: 'Assignment 2', category: 'Assignments', weight: '20%', score: '92%' },
-  { item: 'Midterm Exam', category: 'Exams', weight: '30%', score: '78%' },
-  { item: 'Lab 1', category: 'Labs', weight: '10%', score: '95%' },
-  { item: 'Lab 2', category: 'Labs', weight: '10%', score: '88%' },
-  { item: 'Participation', category: 'Participation', weight: '10%', score: '90%' }
-];
-
-const chartData = [
-  { category: 'Assignments', percentage: 88 },
-  { category: 'Exams', percentage: 78 },
-  { category: 'Labs', percentage: 92 },
-  { category: 'Participation', percentage: 90 }
-];
-
 const GradesPage = () => {
-  const [selectedTerm, setSelectedTerm] = useState('winter-2025');
+  const { user } = useAuth();
+  const student = user as Student;
+  const [selectedTerm, setSelectedTerm] = useState('Spring 2025');
+
+  // Get student's courses and grades
+  const studentCourses = getStudentCourses(student.id);
+  const enrollments = mockEnrollments.filter(e => e.studentId === student.id);
+
+  // Build course grades data
+  const courseGrades: CourseGrade[] = studentCourses.map(course => {
+    const enrollment = enrollments.find(e => e.courseId === course.id);
+    return {
+      courseCode: course.code,
+      courseTitle: course.title,
+      credits: course.credits,
+      grade: enrollment?.grade,
+      letterGrade: enrollment?.letterGrade,
+      term: `${course.term} ${course.year}`,
+    };
+  });
+
+  // Filter by term
+  const filteredGrades = courseGrades.filter(g => g.term === selectedTerm);
+
+  // Calculate term GPA
+  const completedCourses = filteredGrades.filter(g => g.grade !== undefined);
+  const termGPA = completedCourses.length > 0
+    ? completedCourses.reduce((sum, g) => sum + (g.grade || 0), 0) / completedCourses.length
+    : 0;
+
+  const columns: Column<CourseGrade>[] = [
+    {
+      key: 'courseCode',
+      header: 'Course Code',
+      sortable: true,
+    },
+    {
+      key: 'courseTitle',
+      header: 'Course Title',
+      sortable: true,
+    },
+    {
+      key: 'credits',
+      header: 'Credits',
+      sortable: true,
+    },
+    {
+      key: 'grade',
+      header: 'Grade',
+      sortable: true,
+      render: (item) => (
+        item.grade !== undefined ? (
+          <span className="font-semibold">{item.grade.toFixed(1)}%</span>
+        ) : (
+          <Badge variant="outline">In Progress</Badge>
+        )
+      ),
+    },
+    {
+      key: 'letterGrade',
+      header: 'Letter Grade',
+      render: (item) => (
+        item.letterGrade ? (
+          <Badge className="bg-blue-accent text-white">{item.letterGrade}</Badge>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )
+      ),
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Grades</h1>
-          
-          {/* Term Selector */}
-          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Select a term" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="winter-2025">Winter 2025</SelectItem>
-              <SelectItem value="fall-2024">Fall 2024</SelectItem>
-              <SelectItem value="summer-2024">Summer 2024</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Grades</h1>
+          <p className="text-gray-600">View your academic performance</p>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Grades Table */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>CSC 412 - Advanced Computer Graphics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Weight</TableHead>
-                      <TableHead>Score</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockGrades.map((grade, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{grade.item}</TableCell>
-                        <TableCell>{grade.category}</TableCell>
-                        <TableCell>{grade.weight}</TableCell>
-                        <TableCell>{grade.score}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Summary and Chart */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* GPA Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Grade Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">B+</div>
-                  <div className="text-lg text-gray-600">3.5 GPA</div>
-                  <div className="text-sm text-gray-500">Current Standing</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Performance Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Performance by Category</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="percentage" fill="#0066cc" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <Button variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Export Transcript
+        </Button>
       </div>
+
+      {/* GPA Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600">Cumulative GPA</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-navy">{student.gpa.toFixed(2)}</div>
+            <p className="text-sm text-gray-600 mt-2">Overall Performance</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600">Term GPA</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-blue-accent">{termGPA.toFixed(2)}</div>
+            <p className="text-sm text-gray-600 mt-2">{selectedTerm}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600">Credits Earned</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-success">{student.creditsEarned}</div>
+            <p className="text-sm text-gray-600 mt-2">
+              {student.creditsInProgress} in progress
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Grades Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Course Grades</CardTitle>
+            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select a term" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Spring 2025">Spring 2025</SelectItem>
+                <SelectItem value="Fall 2024">Fall 2024</SelectItem>
+                <SelectItem value="Summer 2024">Summer 2024</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            data={filteredGrades}
+            columns={columns}
+            searchable
+            searchPlaceholder="Search courses..."
+            pageSize={10}
+            emptyMessage="No grades available for this term"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

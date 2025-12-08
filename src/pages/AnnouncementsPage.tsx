@@ -1,62 +1,100 @@
-
-import React from 'react';
-import AnnouncementCard from '@/features/home/AnnouncementCard';
-
-const mockAnnouncements = [
-  {
-    id: '1',
-    title: 'PASS drop in Summer hours - connect with a PASS advisor',
-    content: 'PASS (Peer Assisted Study Sessions) will be offering drop-in hours throughout the summer term. Connect with a PASS advisor for academic support and study strategies.',
-    date: 'Yesterday at 9:05 AM',
-    author: 'Engineering and Computer Science'
-  },
-  {
-    id: '2',
-    title: 'Registration planning assistance with PASS',
-    content: 'Need help planning your course registration for the upcoming term? PASS advisors are available to help you make informed decisions about your academic path.',
-    date: 'May 28 at 4:19 PM',
-    author: 'Engineering and Computer Science'
-  },
-  {
-    id: '3',
-    title: 'Study Buddy for Summer!',
-    content: 'Looking for a study partner this summer? Join our Study Buddy program to connect with fellow students in your courses and build effective study groups.',
-    date: 'May 14 at 12:38 PM',
-    author: 'Engineering and Computer Science'
-  },
-  {
-    id: '4',
-    title: 'Summer Research Opportunities',
-    content: 'Several faculty members are looking for undergraduate research assistants for the summer term. This is a great opportunity to gain hands-on research experience.',
-    date: 'May 10 at 2:30 PM',
-    author: 'Faculty of Engineering'
-  },
-  {
-    id: '5',
-    title: 'Library Extended Hours During Exams',
-    content: 'The McPherson Library will be extending its hours during the final exam period. Check the library website for the complete schedule.',
-    date: 'May 8 at 11:15 AM',
-    author: 'UVic Libraries'
-  }
-];
+import React, { useState } from 'react';
+import { mockAnnouncements } from '@/lib/mock-data';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bell, Pin } from 'lucide-react';
 
 const AnnouncementsPage = () => {
+  const [filter, setFilter] = useState<string>('all');
+
+  // Sort announcements by date (newest first)
+  const sortedAnnouncements = [...mockAnnouncements].sort(
+    (a, b) => b.createdDate.getTime() - a.createdDate.getTime()
+  );
+
+  // Filter announcements
+  const filteredAnnouncements = sortedAnnouncements.filter((announcement) => {
+    if (filter === 'all') return true;
+    if (filter === 'high') return announcement.priority === 'high';
+    if (filter === 'course') return announcement.targetAudience === 'specific-course';
+    return true;
+  });
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return <Badge className="bg-destructive text-white">High Priority</Badge>;
+      case 'medium':
+        return <Badge className="bg-warning text-white">Medium</Badge>;
+      case 'low':
+        return <Badge variant="outline">Low</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Announcements</h1>
-        
-        <div className="max-w-4xl mx-auto">
-          {mockAnnouncements.map((announcement) => (
-            <AnnouncementCard
-              key={announcement.id}
-              title={announcement.title}
-              content={announcement.content}
-              date={announcement.date}
-              author={announcement.author}
-            />
-          ))}
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Announcements</h1>
+          <p className="text-gray-600">Stay updated with the latest news and updates</p>
         </div>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Announcements</SelectItem>
+            <SelectItem value="high">High Priority</SelectItem>
+            <SelectItem value="course">Course Specific</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Announcements List */}
+      <div className="max-w-4xl space-y-4">
+        {filteredAnnouncements.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No announcements to display</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredAnnouncements.map((announcement) => (
+            <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {getPriorityBadge(announcement.priority)}
+                      {announcement.courseId && (
+                        <Badge variant="outline">Course Announcement</Badge>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                      {announcement.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-medium">{announcement.authorName}</span>
+                      <span>•</span>
+                      <span>{announcement.createdDate.toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>{announcement.createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 leading-relaxed">{announcement.content}</p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

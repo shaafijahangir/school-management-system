@@ -1,5 +1,6 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "sms-frontend",
+  "description": "School Management System - Frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
